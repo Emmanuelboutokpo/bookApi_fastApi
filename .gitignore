@@ -1,0 +1,4 @@
+bookReview /
+__pycache__ /
+*.pyc
+*.pyo
