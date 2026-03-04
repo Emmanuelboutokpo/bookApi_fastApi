@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.schemas.schema import Book, BookSchema
+from src.schemas.book import Book, BookSchema
 from sqlmodel import select, desc
-from src.model.model import Book as BookModel
+from src.model.book import Book as BookModel
 from datetime import datetime
 
 class BookService:

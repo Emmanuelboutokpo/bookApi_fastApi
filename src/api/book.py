@@ -2,8 +2,8 @@ from fastapi import APIRouter, Query, HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.responses import JSONResponse
 from src.core.db import get_session
-from src.model.model import Book
-from src.services.services import BookService
+from src.model.book import Book
+from src.services.book import BookService
 
 router = APIRouter()
 books = BookService()
