@@ -8,7 +8,7 @@ class Book(SQLModel, table=True):
     title: str
     author: str
     publisher: str
-    published_date: str
+    published_date: datetime = Field(sa_column=Column(DateTime(timezone=True), server_default=func.now()))
     page_count: int
     language: str
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), server_default=func.now()))

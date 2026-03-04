@@ -1,57 +1,41 @@
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.responses import JSONResponse
-from src.core.db import books
-from src.schemas.schema import Book
+from src.core.db import get_session
+from src.model.model import Book
+from src.services.services import BookService
 
 router = APIRouter()
+books = BookService()
 
 @router.get("/books")
-async def root(sorted_by: str = Query(default=None, description="sort by field", examples="title, author, publisher, published_date, language"),
-            order: str = Query("asc", description="sort order", examples="asc, desc")) :
-    
-    result = books
-    if sorted_by is not None :
-        if sorted_by not in ['id', 'title', 'author', 'publisher', 'published_date', 'language'] :
-           raise HTTPException(status_code=400, detail="Invalid sort field")
-    
-        if order not in ['asc', 'desc'] :
-           raise HTTPException(status_code=400, detail="Invalid sort order")
-
-        sorted_orders = False if order == 'desc' else True
-        result = sorted(books, key=lambda x: x[sorted_by], reverse=sorted_orders) 
-
-    return JSONResponse(content=result, status_code=200)
+async def root(session: AsyncSession = Depends(get_session)) :
+    result = await books.get_books(session) 
+    return result
 
 
 @router.get('/book/{book_id}') 
-async def get_book(book_id: int) :
-    for book in books : 
-        if book['id'] == book_id :
-            return JSONResponse(content=book, status_code=200)
-    raise HTTPException(status_code=404, detail="Book not found")
+async def get_book(book_id: str, session: AsyncSession = Depends(get_session)) :
+    result = await books.get_book(book_id, session)
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+    return result
 
 @router.post('/books')
-async def add_book(book: Book) :
-    new_book = book.model_dump()
-    new_book['id'] = max(book['id'] for book in books) + 1
-    books.append(new_book)
-    return JSONResponse(content={"message": "Book added successfully", "book": new_book}, status_code=201)
+async def add_book(book: Book, session: AsyncSession = Depends(get_session)) :
+    new_book = await books.create_book(book, session)
+    return new_book
 
 @router.put("/book/{book_id}")
-async def update_book(book_id: int, updated_book: Book):
-    for index, book in enumerate(books):
-        if book['id'] == book_id:
-            updated_dict = updated_book.model_dump(exclude_unset=True)
-            book.update(updated_dict)
-            book['id'] = book_id
-            return JSONResponse(content={"message": "Book updated successfully"}, status_code=200)
-    
-    raise HTTPException(status_code=404, detail="Book not found")
+async def update_book(book_id: str, updated_book: Book, session: AsyncSession = Depends(get_session)):
+    result = await books.update_book(book_id, updated_book, session)
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+    return result
 
 @router.delete("/books/{book_id}")
-async def delete_book(book_id: int) :
-    for index, book in enumerate(books) :
-        if book['id'] == book_id :
-            del books[index]
-            return JSONResponse(content={"message": "Book deleted successfully"}, status_code=200)
-    raise HTTPException(status_code=404, detail="Book not found")
+async def delete_book(book_id: str, session: AsyncSession = Depends(get_session)) :
+    result = await books.delete_book(book_id, session)
+    if not result:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+    return JSONResponse(content={"message": "Book deleted successfully"}, status_code=status.HTTP_200_OK)
