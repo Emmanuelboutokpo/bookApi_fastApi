@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, DateTime, func
-from typing import Optional, List
+from typing import Optional
 import uuid
 from datetime import datetime
 

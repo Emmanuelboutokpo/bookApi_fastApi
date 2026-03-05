@@ -7,3 +7,9 @@ class User(BaseModel):
     last_name : Annotated[str, Field(description="The last name of the user", min_length=1, max_length=50)]
     email : EmailStr
     password : Annotated[str, Field(description="The password of the user", min_length=6, max_length=72)]
+
+
+
+class UserLogin(BaseModel):
+    email : EmailStr
+    password : Annotated[str, Field(description="The password of the user", min_length=6, max_length=72)]

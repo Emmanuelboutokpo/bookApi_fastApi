@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Annotated
+from typing import Annotated
 from datetime import datetime
 import uuid
 

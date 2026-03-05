@@ -1,8 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select, or_
-from src.schemas.user import User as UserSchema
+from src.schemas.user import User as UserSchema, UserLogin
 from src.model.user import User as UserModel
-from src.utils import generate_password_hash 
+from src.utils import generate_password_hash, verify_password 
 
 class UserService:
     async def get_user_by_email_or_username(self, email: str, username: str, session: AsyncSession):
@@ -30,3 +30,11 @@ class UserService:
         session.add(new_user)
         await session.commit()
         return new_user
+    
+    async def login(self, user_data: UserLogin, session: AsyncSession):
+       statement = select(UserModel).where(UserModel.email == user_data.email)
+       result = await session.execute(statement)
+       user = result.scalars().first()
+       if user and verify_password(user_data.password, user.password):
+        return user
+       return None
