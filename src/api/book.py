@@ -1,15 +1,18 @@
 from fastapi import APIRouter, Query, HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.responses import JSONResponse
+from src.api.dependencies import AccessTokenBearer
 from src.core.db import get_session
 from src.model.book import Book
 from src.services.book import BookService
 
 router = APIRouter()
 books = BookService()
+access_token_bearer = AccessTokenBearer()
 
 @router.get("/books", status_code=status.HTTP_200_OK)
-async def root(session: AsyncSession = Depends(get_session)) :
+async def root(session: AsyncSession = Depends(get_session), user_sec = Depends(access_token_bearer)) :
+    print('us info',user_sec)
     result = await books.get_books(session) 
     return result
 

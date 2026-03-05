@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.responses import JSONResponse
+from src.api.dependencies import AccessTokenBearer
 from src.core.db import get_session
 from src.model.user import User
 from src.services.user import UserService
