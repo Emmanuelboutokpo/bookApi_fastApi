@@ -12,7 +12,6 @@ access_token_bearer = AccessTokenBearer()
 
 @router.get("/books", status_code=status.HTTP_200_OK)
 async def root(session: AsyncSession = Depends(get_session), user_sec = Depends(access_token_bearer)) :
-    print('us info',user_sec)
     result = await books.get_books(session) 
     return result
 
