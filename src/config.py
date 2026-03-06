@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     algorithm: str
     access_token_expire_minutes: int
     refresh_token_expire_days: int
+    redis_host: str
+    redis_port: int
+    jti_expiration_seconds: int
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 settings = Settings()

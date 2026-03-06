@@ -8,6 +8,7 @@ from src.services.user import UserService
 from src.utils import generateAccessToken
 from src.api.dependencies import RefreshTokenBearer
 from datetime import datetime
+from src.core.redis import add_jti_to_blacklist
 
 auth_router = APIRouter()
 users = UserService()
@@ -52,3 +53,12 @@ async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer(
     raise HTTPException(
         status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Or expired token"
     )
+
+@auth_router.post("/logout")
+async def logout(token_details: dict = Depends(AccessTokenBearer())):
+    jti = token_details.get('jti')
+    if jti:
+        await add_jti_to_blacklist(jti)
+        return JSONResponse(content={"message": "Successfully logged out"}, status_code=status.HTTP_200_OK)
+    
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")    
