@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     redis_host: str
     redis_port: int
     jti_expiration_seconds: int
+    resend_api_key: str
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 settings = Settings()

@@ -38,3 +38,13 @@ class UserService:
        if user and verify_password(user_data.password, user.password):
         return user
        return None
+
+
+    async def update_user(self, user: UserSchema, update_data: dict, session: AsyncSession):
+
+        for key, value in update_data.items():
+            setattr(user, key, value)
+
+        session.add(user)
+        await session.commit()
+        return user
