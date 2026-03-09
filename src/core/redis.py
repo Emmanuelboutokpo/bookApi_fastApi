@@ -12,5 +12,5 @@ async def add_jti_to_blacklist(jti: str):
     await token_blacklist.set(jti, "blacklisted", ex=settings.jti_expiration_seconds)
 
 async def token_in_blacklist(jti: str) -> bool:
-    jti = await token_blacklist.exists(jti) == 1
-    return jti is not None
+    result = await token_blacklist.exists(jti)
+    return result == 1

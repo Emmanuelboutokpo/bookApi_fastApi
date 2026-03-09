@@ -19,6 +19,7 @@ class TokenBearer(HTTPBearer):
             )
         
         if await token_in_blacklist(token_data.get('jti')):
+            print(f"Token with jti: {token_data.get('jti')} is in blacklist")
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Token has been revoked"
