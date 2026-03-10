@@ -12,6 +12,7 @@ from src.utils import generateAccessToken, generate_password_hash
 from src.api.dependencies import RefreshTokenBearer
 from datetime import datetime
 from src.core.redis import add_jti_to_blacklist, delete_otp, get_otp, save_otp, get_resend_cooldown, save_reset_token, set_resend_cooldown, get_email_from_reset_token,delete_reset_token
+from src.api.dependencies import get_current_user
 
 auth_router = APIRouter()
 users = UserService()
@@ -164,3 +165,8 @@ async def logout(token_details: dict = Depends(AccessTokenBearer())):
         return JSONResponse(content={"message": "Successfully logged out"}, status_code=status.HTTP_200_OK)
     
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")    
+
+
+@auth_router.get("/me")
+async def get_current_user(user=Depends(get_current_user)):
+    return user

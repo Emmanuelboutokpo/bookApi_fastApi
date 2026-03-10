@@ -2,7 +2,12 @@ from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, DateTime, func
 from typing import Optional
 import uuid
+from enum import Enum
 from datetime import datetime
+
+class UserRole(str, Enum):
+    ADMIN = "admin"
+    USER = "user"
 
 class User(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -13,6 +18,7 @@ class User(SQLModel, table=True):
     password: str = Field(nullable=False)
     photo_url: Optional[str] = None
     isverified: bool = Field(default=False)
+    role : UserRole = Field(default=UserRole.USER, nullable=False)  
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), server_default=func.now()))
     updated_at: datetime = Field( sa_column=Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now()))
     
