@@ -13,6 +13,8 @@ from src.api.dependencies import RefreshTokenBearer
 from datetime import datetime
 from src.core.redis import add_jti_to_blacklist, delete_otp, get_otp, save_otp, get_resend_cooldown, save_reset_token, set_resend_cooldown, get_email_from_reset_token,delete_reset_token
 from src.api.dependencies import get_current_user
+from src.schemas.user import UserBooksModel
+from src.errors import RevokedToken, UserAlreadyExists, UserNotFound
 
 auth_router = APIRouter()
 users = UserService()
@@ -40,7 +42,7 @@ async def verify_account(user_data: User, code: str, session: AsyncSession = Dep
         raise HTTPException(status_code=400, detail="Code invalide ou expiré")
     get_user = await users.get_user_by_email_or_username(user_data.email, user_data.username, session)
     if not get_user:
-        raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
+        raise UserNotFound()
     
     access_token = generateAccessToken(user_data={"sub": str(get_user.id), "email": get_user.email})
     refresh_token = generateAccessToken(user_data={"sub": str(get_user.id), "email": get_user.email}, refresh=True)
@@ -68,10 +70,7 @@ async def verify_account(user_data: User, code: str, session: AsyncSession = Dep
 async def resend_otp(user_data: User, session: AsyncSession = Depends(get_session)):
     user = await users.get_user_by_email_or_username(user_data.email, user_data.username, session)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Utilisateur introuvable"
-        )
+        raise UserNotFound()
 
     cooldown = await get_resend_cooldown(user_data.email)
     if cooldown:
@@ -128,7 +127,7 @@ async def get_new_access_token(token_details: dict = Depends(RefreshTokenBearer(
 async def forgot_password(user_data: User, session: AsyncSession = Depends(get_session)):
     user = await users.get_user_by_email_or_username(user_data.email, user_data.username, session)
     if not user:
-        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+        raise UserNotFound()
 
     token = secrets.token_urlsafe(32)
     await save_reset_token(user_data.email, token)
@@ -146,7 +145,7 @@ async def reset_password(user_data: User, token: str, new_password: str, session
 
     user = await users.get_user_by_email_or_username(user_data.email, user_data.username, session)
     if not user:
-        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+        raise UserNotFound()
 
     user.password = generate_password_hash(new_password)
     session.add(user)
@@ -167,6 +166,6 @@ async def logout(token_details: dict = Depends(AccessTokenBearer())):
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid token")    
 
 
-@auth_router.get("/me")
+@auth_router.get("/me", response_model=UserBooksModel)
 async def get_current_user(user=Depends(get_current_user)):
     return user

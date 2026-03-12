@@ -5,7 +5,7 @@ from src.model.book import Book as BookModel
 from datetime import datetime
 
 class BookService:
-    async def create_book(self, book_data: BookSchema, session : AsyncSession):
+    async def create_book(self, book_data: BookSchema, user_uid: str, session : AsyncSession):
         book_data_dict = book_data.model_dump()
         for field in ["published_date", "created_at", "updated_at"]:
              value = book_data_dict.get(field)
@@ -13,6 +13,7 @@ class BookService:
                 clean_date = value.replace("Z", "+00:00")
                 book_data_dict[field] = datetime.fromisoformat(clean_date)
         new_book = BookModel(**book_data_dict)
+        new_book.user_uid = user_uid
         session.add(new_book)
         await session.commit()
         return new_book
@@ -30,6 +31,17 @@ class BookService:
         execution = await session.execute(statement)
         result = execution.scalars().all()
         return result
+    
+    async def get_user_books(self, user_uid: str, session: AsyncSession):
+        statement = (
+            select(BookModel)
+            .where(BookModel.user_uid == user_uid)
+            .order_by(desc(BookModel.created_at))
+        )
+
+        result = await session.exec(statement)
+
+        return result.all()
 
     async def update_book(self, book_id: str, book_data: BookSchema, session: AsyncSession):
         book_to_update = await self.get_book(book_id, session)

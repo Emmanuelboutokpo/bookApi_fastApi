@@ -1,9 +1,12 @@
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, DateTime, func
-from typing import Optional
+from typing import List, Optional
 import uuid
 from enum import Enum
 from datetime import datetime
+
+from src.schemas.book import Book
+from src.schemas.review import Review
 
 class UserRole(str, Enum):
     ADMIN = "admin"
@@ -22,6 +25,10 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), server_default=func.now()))
     updated_at: datetime = Field( sa_column=Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now()))
     
+    books: List["Book"] = Relationship(back_populates="owner", sa_relationship_kwargs={"lazy": "selectin"}, cascade_delete=True)
+    reviews: List["Review"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"lazy": "selectin"}
+    )
     def __repr__(self):
         return f"User(id={self.id}, username='{self.username}', email='{self.email}')"
     

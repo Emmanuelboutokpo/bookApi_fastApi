@@ -4,6 +4,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 from datetime import datetime, timedelta
 import jwt
 from src.config import settings
+from fastapi import HTTPException
 
 def generate_password_hash(password: str) -> str:
     return pwd_context.hash(password)
@@ -27,6 +28,6 @@ def decode_access_token(token: str) -> dict:
         payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
         return payload
     except jwt.ExpiredSignatureError:
-        raise ValueError("Token has expired")
+        raise HTTPException(status_code=403, detail="Token has expired")
     except jwt.InvalidTokenError:
-        raise ValueError("Invalid token")
+        raise HTTPException(status_code=403, detail="Invalid token")
